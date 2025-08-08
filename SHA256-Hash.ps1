@@ -33,7 +33,7 @@ $fileName = [System.IO.Path]::GetFileName($FilePath)
 
 # Lowercase hash for clipboard
 $lowerHash = $hash.Hash.ToLower()
-[System.Windows.Forms.Clipboard]::SetText($lowerHash)
+[System.Windows.Forms.Clipboard]::SetText("sha256:$lowerHash")
 
 # Lowercase + space every 2 hex chars + new line for messagebox
 # Add space every 2 hex chars for messagebox

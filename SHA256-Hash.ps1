@@ -1,4 +1,4 @@
-# bismarck-otto 2025-08-05 to calculate hash with SHA256-Hash.ps1
+# bismarck-otto 2025-08-08 to calculate hash with SHA256-Hash.ps1
 
 # Copyright (c) 2025 Otto von Bismarck
 # This project includes portions generated using OpenAI’s ChatGPT.
@@ -31,5 +31,19 @@ Add-Type -AssemblyName System.Windows.Forms
 $hash = Get-FileHash -Algorithm SHA256 -Path $FilePath
 $fileName = [System.IO.Path]::GetFileName($FilePath)
 
-[System.Windows.Forms.Clipboard]::SetText($hash.Hash)
-[System.Windows.Forms.MessageBox]::Show("SHA-256 Hash for the file '$fileName' is listed below and copied to the clipboard:`n`n$($hash.Hash)", "SHA-256 Hash", 0)
+# Lowercase hash for clipboard
+$lowerHash = $hash.Hash.ToLower()
+[System.Windows.Forms.Clipboard]::SetText($lowerHash)
+
+# Lowercase + space every 2 hex chars + new line for messagebox
+# Add space every 2 hex chars for messagebox
+$spacedHash = ($lowerHash -replace '(.{2})', '$1 ').Trim()
+
+# Insert newline after half the pairs; correct index is 48 = 16 pairs × (2 chars + 1 space)
+$formattedHash = $spacedHash.Insert(48, "`n")
+
+# Output to messagebox
+[System.Windows.Forms.MessageBox]::Show(
+    "SHA-256 Hash for the file '$fileName' is:`n`n$formattedHash",
+    "SHA-256 Hash", 0
+)

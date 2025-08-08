@@ -44,6 +44,6 @@ $formattedHash = $spacedHash.Insert(48, "`n")
 
 # Output to messagebox
 [System.Windows.Forms.MessageBox]::Show(
-    "SHA-256 Hash for the file '$fileName' is:`n`n$formattedHash",
+    "SHA-256 hash of $fileName`n`n$formattedHash",
     "SHA-256 Hash", 0
 )

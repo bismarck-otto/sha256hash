@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# bismarck-otto 2026-08-12 to calculate hash with sha256-hash.sh
+# bismarck-otto 2026-08-12 to calculate hash with sha1-hash.sh
 
 # Copyright (c) 2026 Otto von Bismarck
 # This project includes portions generated using OpenAI’s ChatGPT.
@@ -15,29 +15,29 @@
 # d) Create Yellow Padlock SVG Icon
 
 : <<'CONFIG_COMMENT'
-# /usr/share/applications/sha256-hash.desktop
+# /usr/share/applications/sha1-hash.desktop
 
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Calculate SHA256 Hash
-Comment=Calculate a SHA256 hash and copy it to the clipboard
-Exec=/opt/hash/sha256-hash.sh
+Name=Calculate SHA1 Hash
+Comment=Calculate a SHA1 hash and copy it to the clipboard
+Exec=/opt/hash/sha1-hash.sh
 Icon=sha256-hash-yellow-padlock
 Terminal=false
 StartupNotify=true
 Categories=Utility;
 
 
-# /usr/share/Thunar/sendto/sha256-hash.desktop
+# /usr/share/Thunar/sendto/sha1-hash.desktop
 
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Calculate SHA256 Hash
-Comment=Calculate SHA256 hash and copy it to the clipboard
-TryExec=/opt/hash/sha256-hash.sh
-Exec=/opt/hash/sha256-hash.sh %F
+Name=Calculate SHA1 Hash
+Comment=Calculate SHA1 hash and copy it to the clipboard
+TryExec=/opt/hash/sha1-hash.sh
+Exec=/opt/hash/sha1-hash.sh %F
 Icon=sha256-hash-yellow-padlock
 Terminal=false
 StartupNotify=true
@@ -57,7 +57,7 @@ StartupNotify=true
     <Directory>sign-and-hash.directory</Directory>
 
     <Include>
-      <Filename>sha256-hash.desktop</Filename>
+      <Filename>sha1-hash.desktop</Filename>
     </Include>
 
   </Menu>
@@ -142,10 +142,10 @@ EOF
 # End of comment section with configuration info
 CONFIG_COMMENT
 
-# sha256-hash.sh
+# sha1-hash.sh
 set -Eeuo pipefail
 
-TITLE="SHA256 Hash"
+TITLE="SHA1 Hash"
 
 
 # ------------------------------------------------------------
@@ -168,14 +168,14 @@ show_error() {
 # Two supported invocation methods:
 #
 # 1. XFCE application menu
-#       /opt/hash/sha256-hash.sh
+#       /opt/hash/sha1-hash.sh
 #
 #    No argument:
 #    Open GUI file chooser.
 #
-# 2. Thunar -> Send To -> Calculate SHA256 Hash
+# 2. Thunar -> Send To -> Calculate SHA1 Hash
 #
-#       /opt/hash/sha256-hash.sh "/path/to/file"
+#       /opt/hash/sha1-hash.sh "/path/to/file"
 #
 #    Use file supplied by Thunar directly.
 # ------------------------------------------------------------
@@ -185,7 +185,7 @@ if (( $# == 0 )); then
     FILE="$(
         zenity \
             --file-selection \
-            --title="Select file to calculate SHA256 hash" \
+            --title="Select file to calculate SHA1 hash" \
             2>/dev/null
     )" || exit 0
 
@@ -198,11 +198,11 @@ elif (( $# == 1 )); then
 
 else
 
-    show_error "Calculate SHA256 Hash accepts one file at a time.
+    show_error "Calculate SHA1 Hash accepts one file at a time.
 
 Please select one file in Thunar and use:
 
-Send To → Calculate SHA256 Hash"
+Send To → Calculate SHA1 Hash"
 
     exit 1
 fi
@@ -235,11 +235,11 @@ fi
 
 
 # ------------------------------------------------------------
-# Calculate SHA256
+# Calculate SHA1
 # ------------------------------------------------------------
 
 HASH="$(
-    sha256sum -- "$FILE" |
+    sha1sum -- "$FILE" |
         awk '{print $1}'
 )"
 
@@ -247,11 +247,11 @@ HASH="${HASH,,}"
 
 
 # ------------------------------------------------------------
-# Validate calculated SHA256
+# Validate calculated SHA1
 # ------------------------------------------------------------
 
-if [[ ! "$HASH" =~ ^[0-9a-f]{64}$ ]]; then
-    show_error "Failed to calculate a valid SHA256 hash."
+if [[ ! "$HASH" =~ ^[0-9a-f]{40}$ ]]; then
+    show_error "Failed to calculate a valid SHA1 hash."
     exit 1
 fi
 
@@ -264,18 +264,18 @@ FILE_NAME="$(basename -- "$FILE")"
 #
 # Keep the exact Windows clipboard format:
 #
-#     sha256:<64-character-lowercase-hash>
+#     sha1:<40-character-lowercase-hash>
 #
 # No spaces.
 # No newline.
 # ------------------------------------------------------------
 
-CLIPBOARD_TEXT="sha256:${HASH}"
+CLIPBOARD_TEXT="sha1:${HASH}"
 
 if ! printf '%s' "$CLIPBOARD_TEXT" |
         xclip -selection clipboard
 then
-    show_error "The SHA256 hash was calculated, but it could not be copied to the clipboard."
+    show_error "The SHA1 hash was calculated, but it could not be copied to the clipboard."
     exit 1
 fi
 
@@ -285,16 +285,16 @@ fi
 #
 # lowercase
 # space after every byte pair
-# split after 16 byte pairs
+# split after 10 byte pairs
 #
 # Example:
 #
-# aa bb cc ... 16 pairs
-# 11 22 33 ... 16 pairs
+# aa bb cc ... 10 pairs
+# 11 22 33 ... 10 pairs
 # ------------------------------------------------------------
 
-HASH_FIRST="${HASH:0:32}"
-HASH_SECOND="${HASH:32:32}"
+HASH_FIRST="${HASH:0:20}"
+HASH_SECOND="${HASH:20:20}"
 
 format_pairs() {
     printf '%s' "$1" |
@@ -325,7 +325,7 @@ ESCAPED_FILE_NAME="$(
 #
 # Deliberately matches the Windows message:
 #
-# SHA256 hash of filename
+# SHA1 hash of filename
 #
 # xx xx ...
 # xx xx ...
@@ -333,7 +333,7 @@ ESCAPED_FILE_NAME="$(
 # Clipboard operation has already happened before this dialog.
 # ------------------------------------------------------------
 
-MESSAGE="SHA256 hash of ${ESCAPED_FILE_NAME}
+MESSAGE="SHA1 hash of ${ESCAPED_FILE_NAME}
 
 <span font_family=\"monospace\">${LINE1}
 ${LINE2}</span>"
